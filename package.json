@@ -1,0 +1,27 @@
+{
+  "name": "dear-agent",
+  "version": "1.0.0",
+  "type": "module",
+  "main": "dist/index.js",
+  "scripts": {
+    "start": "tsx src/index.ts",
+    "dev": "tsx watch src/index.ts",
+    "build": "tsc",
+    "typecheck": "tsc --noEmit"
+  },
+  "keywords": ["rayls", "treasury", "agent", "institutional"],
+  "author": "",
+  "license": "ISC",
+  "description": "DEAR - Autonomous Institutional Treasury Agent",
+  "dependencies": {
+    "dotenv": "^17.3.1",
+    "pino": "^10.3.1",
+    "viem": "^2.47.6",
+    "zod": "^4.3.6"
+  },
+  "devDependencies": {
+    "@types/node": "^25.5.0",
+    "tsx": "^4.21.0",
+    "typescript": "^6.0.2"
+  }
+}
