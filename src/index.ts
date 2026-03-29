@@ -8,16 +8,23 @@ import { setModel } from "./agent/llm.js";
 import { initGuardrails } from "./agent/guardrails.js";
 import { startAgentLoop, stopAgent } from "./agent/loop.js";
 
+const GOLD = "\x1b[38;2;198;168;75m";
+const SIENNA = "\x1b[38;2;107;50;34m";
+const AMBER = "\x1b[38;2;184;134;58m";
+const DIM = "\x1b[2m";
+const BOLD = "\x1b[1m";
+const RST = "\x1b[0m";
+
 const BANNER = `
-  ____  _____    _    ____
+${GOLD}${BOLD}  ____  _____    _    ____
  |  _ \\| ____|  / \\  |  _ \\
  | | | |  _|   / _ \\ | |_) |
  | |_| | |___ / ___ \\|  _ <
- |____/|_____/_/   \\_\\_| \\_\\
+ |____/|_____/_/   \\_\\_| \\_\\${RST}
 
-  Autonomous Institutional Treasury Agent
-  Detect . Attest . Govern . Bridge . List
-  ----------------------------------------
+${AMBER}  Autonomous Institutional Treasury Agent${RST}
+${SIENNA}  Detect ${DIM}.${RST}${SIENNA} Attest ${DIM}.${RST}${SIENNA} Govern ${DIM}.${RST}${SIENNA} Bridge ${DIM}.${RST}${SIENNA} List${RST}
+${DIM}  ----------------------------------------${RST}
 `;
 
 async function main() {
