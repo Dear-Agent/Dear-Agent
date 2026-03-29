@@ -1,12 +1,12 @@
 import { phaseLog } from "../logger/index.js";
 import type { DetectedAsset, AttestationData, GovernanceDecision } from "../types/index.js";
 
-const OLLAMA_BASE = "http://localhost:11434/v1/chat/completions";
+const OLLAMA_BASE = "http://localhost:11434/api/chat";
 
 const SYSTEM_PROMPT = `You are DEAR, an autonomous institutional treasury compliance agent.
 You analyze tokenized assets for risk, compliance, and market viability.
 You make governance decisions: APPROVE or REJECT assets for cross-chain bridging and marketplace listing.
-IMPORTANT: Do NOT think or reason. Output ONLY the raw JSON object. No explanation, no markdown, no wrapping. /no_think`;
+IMPORTANT: Output ONLY the raw JSON object. No explanation, no markdown, no wrapping.`;
 
 let model = "deepseek-r1:14b";
 
@@ -28,8 +28,13 @@ async function chat(userPrompt: string): Promise<string> {
           { role: "system", content: SYSTEM_PROMPT },
           { role: "user", content: userPrompt },
         ],
-        temperature: 0.3,
-        max_tokens: 512,
+        stream: false,
+        think: false,
+        format: "json",
+        options: {
+          temperature: 0.3,
+          num_predict: 512,
+        },
       }),
       signal: controller.signal,
     });
@@ -39,7 +44,8 @@ async function chat(userPrompt: string): Promise<string> {
     }
 
     const data = await res.json();
-    const content = data.choices?.[0]?.message?.content ?? "";
+    const content = data.message?.content ?? data.choices?.[0]?.message?.content ?? "";
+    phaseLog("LLM", "Raw LLM response", { length: content.length, preview: content.slice(0, 200) });
     // Strip <think>...</think> tags from deepseek-r1 / qwen3 responses
     const stripped = content.replace(/<think>[\s\S]*?<\/think>/g, "").trim();
     if (stripped) return stripped;
