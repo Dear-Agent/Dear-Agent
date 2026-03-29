@@ -98,13 +98,21 @@ Each phase produces structured colored logs with audio feedback and voice narrat
 
 ## Deployed Contracts (Privacy Node 5)
 
-| Contract | Address |
-|----------|---------|
-| HackathonToken | `0xd0141e899a65c95a556fe2b27e5982a6de7fdd7a` |
-| Attestation | `0x07882ae1ecb7429a84f1d53048d35c4bb2056877` |
-| Marketplace | `0x22753e4264fddc6181dc7cce468904a80a363e44` |
+| Contract | Address | Explorer |
+|----------|---------|----------|
+| HackathonToken | `0xd0141e899a65c95a556fe2b27e5982a6de7fdd7a` | [View](https://blockscout-privacy-node-5.rayls.com/address/0xd0141e899a65c95a556fe2b27e5982a6de7fdd7a) |
+| Attestation | `0x07882ae1ecb7429a84f1d53048d35c4bb2056877` | [View](https://blockscout-privacy-node-5.rayls.com/address/0x07882ae1ecb7429a84f1d53048d35c4bb2056877) |
+| Marketplace | `0x22753e4264fddc6181dc7cce468904a80a363e44` | [View](https://blockscout-privacy-node-5.rayls.com/address/0x22753e4264fddc6181dc7cce468904a80a363e44) |
 
-Explorer: https://blockscout-privacy-node-5.rayls.com
+### Live Transactions (from agent run)
+
+| Phase | Tx Hash | Explorer |
+|-------|---------|----------|
+| Token Deploy | `0xab65e485...` | [View](https://blockscout-privacy-node-5.rayls.com/tx/0xab65e4858c8e0d4e56ecd870789f3d1a1aa609f4458c027f72691a52716c1022) |
+| Attestation Deploy | `0x8580876c...` | [View](https://blockscout-privacy-node-5.rayls.com/tx/0x8580876c2e878e447830d536c050cba33a41911cfe6929f8bb70f2c2f76b61af) |
+| Marketplace Deploy | `0x5a077fb6...` | [View](https://blockscout-privacy-node-5.rayls.com/tx/0x5a077fb62c0e4868b0d0570d63c74dd01fed906f0c6acf5821ddcc935a1b0a0d) |
+| On-chain Attestation | `0xda884941...` | [View](https://blockscout-privacy-node-5.rayls.com/tx/0xda884941be2f14311d5b95bc8afeff28de3a754c8314edd5e68583a7dd3fa9b5) |
+| Bridge Intent | `0x54b81c5a...` | [View](https://blockscout-privacy-node-5.rayls.com/tx/0x54b81c5ad2a313eac320c13a02fb88a3ff16b8330ca442a72a27107f2d062318) |
 
 ---
 
