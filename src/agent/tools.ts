@@ -66,74 +66,9 @@ export async function detectAssets(
     }
   }
 
-  // Also scan for Transfer events to discover new tokens
-  try {
-    const transferEvent = parseAbiItem(
-      "event Transfer(address indexed from, address indexed to, uint256 value)",
-    );
-    const latestBlock = await client.getBlockNumber();
-    const fromBlock = latestBlock > 10000n ? latestBlock - 10000n : 0n;
-    const logs = await client.getLogs({
-      event: transferEvent,
-      args: { to: account.address },
-      fromBlock,
-      toBlock: "latest",
-    });
-
-    const discoveredAddresses = new Set(
-      logs.map((l) => l.address.toLowerCase()),
-    );
-
-    for (const addr of discoveredAddresses) {
-      const hex = addr as `0x${string}`;
-      if (knownTokens.some((k) => k.toLowerCase() === addr)) continue;
-
-      try {
-        const [name, symbol, decimals, balance] = await Promise.all([
-          client.readContract({
-            address: hex,
-            abi: HACKATHON_TOKEN_ABI,
-            functionName: "name",
-          }) as Promise<string>,
-          client.readContract({
-            address: hex,
-            abi: HACKATHON_TOKEN_ABI,
-            functionName: "symbol",
-          }) as Promise<string>,
-          client.readContract({
-            address: hex,
-            abi: HACKATHON_TOKEN_ABI,
-            functionName: "decimals",
-          }) as Promise<number>,
-          client.readContract({
-            address: hex,
-            abi: HACKATHON_TOKEN_ABI,
-            functionName: "balanceOf",
-            args: [account.address],
-          }) as Promise<bigint>,
-        ]);
-
-        if (balance > 0n) {
-          assets.push({
-            tokenAddress: hex,
-            name,
-            symbol,
-            balance,
-            decimals,
-          });
-          phaseLog("DETECT", `Discovered ${symbol}: ${formatUnits(balance, decimals)}`, {
-            address: hex,
-          });
-        }
-      } catch {
-        // Not an ERC20, skip
-      }
-    }
-  } catch (err) {
-    phaseLog("DETECT", "Event scan failed, using known tokens only", {
-      error: String(err),
-    });
-  }
+  // Discovery via Transfer events (optional, can be slow on some nodes)
+  // Skipped for now: Privacy Node getLogs is unreliable with large block ranges.
+  // New tokens should be added to KNOWN_TOKENS env var instead.
 
   return assets;
 }

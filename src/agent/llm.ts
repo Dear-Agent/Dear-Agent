@@ -6,7 +6,7 @@ const OLLAMA_BASE = "http://localhost:11434/v1/chat/completions";
 const SYSTEM_PROMPT = `You are DEAR, an autonomous institutional treasury compliance agent.
 You analyze tokenized assets for risk, compliance, and market viability.
 You make governance decisions: APPROVE or REJECT assets for cross-chain bridging and marketplace listing.
-Always respond with valid JSON. Be concise. No markdown.`;
+IMPORTANT: Do NOT think or reason. Output ONLY the raw JSON object. No explanation, no markdown, no wrapping.`;
 
 let model = "deepseek-r1:14b";
 
