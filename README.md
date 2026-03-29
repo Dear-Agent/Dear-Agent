@@ -1,41 +1,55 @@
-# Dear Agent
-### Autonomous Institutional Treasury Agent on [Rayls](https://www.rayls.com/)
+# DEAR - Autonomous Institutional Treasury Agent
+
+Detect . Attest . Govern . Bridge . List
+
+An autonomous AI agent that manages institutional treasury operations on the [Rayls](https://www.rayls.com/) network. It continuously scans a Privacy Node for tokenized assets, performs compliance analysis via a local LLM, makes governance decisions, bridges approved assets to the public chain, and lists them on a marketplace -- all without human intervention.
 
 ---
 
-## What is it?
+## Quick Start
 
-Dear Agent is an **autonomous AI agent** that manages an institutional treasury on the [Rayls](https://rayls.com) network. It autonomously detects private assets, attests their existence on-chain, performs AI-driven compliance review, bridges them from a privacy node to the public chain, and lists them on a marketplace — all without human intervention.
+```bash
+# Clone
+git clone https://github.com/Dear-Agent/Dear-Agent.git
+cd Dear-Agent
 
----
+# Install dependencies
+npm install
 
-## The Problem
+# Configure environment
+cp .env.example .env
+# Edit .env: fill in DEPLOYER_PRIVATE_KEY and USER_PRIVATE_KEY
 
-Institutional asset managers operating on privacy-preserving blockchains face a bottleneck: moving assets from private to public markets requires coordinated multi-step workflows (attestation, compliance, bridging, listing) that are manual, error-prone, and slow. There's no autonomous system that can handle this end-to-end while respecting privacy boundaries.
+# Pull the LLM model (local, zero cloud dependency)
+ollama pull deepseek-r1:14b
 
----
-
-## The Solution
-
-An AI agent loop that runs continuously across two Rayls chains:
-
-| Chain | Role |
-|---|---|
-| Privacy Node 5 (`800005`) | Where private assets live |
-| Rayls Public Testnet (`7295799`) | Where attested assets are traded |
-
-### Agent Pipeline
-
-```
-DETECT → ATTEST → GOVERN → BRIDGE → LIST → MONITOR → (loop)
+# Run the agent
+KNOWN_TOKENS=0x34b40ba116d5dec75548a9e9a8f15411461e8c70 npx tsx src/index.ts
 ```
 
-1. **DETECT** — Scans the Privacy Node for deployed ERC20/721/1155 tokens. The LLM analyzes which assets are ready for the pipeline.
-2. **ATTEST** — Deploys a minimal on-chain attestation (proof of existence) to the public chain — without revealing private details.
-3. **GOVERN** — The LLM acts as compliance reviewer: is this asset ready to bridge? Produces a structured JSON decision with full reasoning, logged permanently.
-4. **BRIDGE** — If governance approves, initiates the Privacy → Public bridge (lock + mirror mint). Dry-run first, always.
-5. **LIST** — Lists the bridged asset on the Marketplace smart contract with a price in USDR. The asset is now publicly tradeable with full provenance.
-6. **MONITOR** — Continuous loop: watches for new assets and re-runs the full pipeline automatically.
+### Prerequisites
+
+- **Node.js** >= 18
+- **Ollama** installed and running (`ollama serve`)
+- **Foundry** for contract compilation (optional, pre-compiled artifacts included)
+- macOS recommended for full audio feedback (system sounds + voice narration)
+
+---
+
+## Agent Pipeline
+
+```
+DETECT --> ATTEST --> GOVERN --> BRIDGE --> LIST --> MONITOR --> (loop)
+```
+
+1. **DETECT** -- Scans the Privacy Node for deployed ERC20 tokens with non-zero balance
+2. **ATTEST** -- LLM analyzes asset type, risk score, compliance status. Minimal on-chain attestation on the public chain (proof of existence, no private details revealed)
+3. **GOVERN** -- LLM acts as compliance committee: approves or rejects the asset for bridge with structured reasoning
+4. **BRIDGE** -- If approved, initiates Privacy Node to Public Chain bridge (dry-run first)
+5. **LIST** -- Lists the bridged asset on the Marketplace contract with a suggested price
+6. **MONITOR** -- Checks marketplace state, loops back to DETECT
+
+Each phase produces structured colored logs with audio feedback on macOS.
 
 ---
 
@@ -44,30 +58,29 @@ DETECT → ATTEST → GOVERN → BRIDGE → LIST → MONITOR → (loop)
 ```
 +----------------------------------------------------------+
 |                    HARNESS (TypeScript)                   |
-|                                                           |
+|                                                          |
 |  +-------------------+    +---------------------------+  |
 |  |   Agent Loop      |    |   Guardrails Engine       |  |
 |  |  DETECT           |    |  - Max bridge amount      |  |
-|  |  ATTEST           |    |  - Whitelist contracts    |  |
-|  |  GOVERN           |    |  - Rate limiting          |  |
-|  |  BRIDGE           |    |  - Dry-run mode           |  |
+|  |  ATTEST           |    |  - Rate limiting          |  |
+|  |  GOVERN           |    |  - Dry-run mode           |  |
+|  |  BRIDGE           |    |  - Cooldown enforcement   |  |
 |  |  LIST             |    +---------------------------+  |
 |  |  MONITOR          |                                   |
 |  +-------------------+    +---------------------------+  |
 |                           |   Structured Logger       |  |
-|  +-------------------+    |  - Every decision logged  |  |
-|  |   LLM Provider    |    |  - On-chain tx hashes     |  |
-|  |  Claude (primary) |    |  - Full reasoning traces  |  |
-|  |  OpenRouter (fbk) |    +---------------------------+  |
+|  +-------------------+    |  - Colored terminal output|  |
+|  |   LLM Provider    |    |  - Full reasoning traces  |  |
+|  |  Ollama (local)   |    |  - Audio + voice feedback |  |
+|  |  deepseek-r1:14b  |    +---------------------------+  |
 |  +-------------------+                                   |
-|                                                           |
+|                                                          |
 |  +----------------------------------------------------+  |
-|  |                   TOOLS (viem)                     |  |
-|  |  Privacy Node          Public Chain                |  |
-|  |  - deployToken()       - deployMarketplace()       |  |
-|  |  - mintToken()         - listAsset()               |  |
-|  |  - getBalances()       - getListings()             |  |
-|  |  - bridgeToPublic()    - attestOnChain()           |  |
+|  |                   TOOLS (viem)                      |  |
+|  |  Privacy Node 5         Public Testnet              |  |
+|  |  - detectAssets()       - attestOnChain()           |  |
+|  |  - balanceOf()          - listOnMarketplace()       |  |
+|  |  - bridgeAsset()        - getMarketplaceListings()  |  |
 |  +----------------------------------------------------+  |
 +----------------------------------------------------------+
          |                              |
@@ -78,81 +91,50 @@ DETECT → ATTEST → GOVERN → BRIDGE → LIST → MONITOR → (loop)
 
 ---
 
-## Tech Stack
+## Environment Variables
 
-| Component | Choice | Why |
-|---|---|---|
-| Runtime | Node.js + TypeScript | Type-safe, fast iteration |
-| LLM | Claude (Anthropic SDK) | Primary reasoning engine |
-| Fallback LLM | OpenRouter | DeepSeek/Llama backup |
-| Blockchain client | viem | Modern, type-safe EVM |
-| Smart contracts | Foundry (Rayls starter kit) | Battle-tested, provided by Rayls |
-| Logger | pino | Structured JSON logs |
-| Config | dotenv + zod | Runtime env validation |
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `PRIVACY_NODE_RPC_URL` | Rayls Privacy Node 5 RPC | `https://privacy-node-5.rayls.com` |
+| `PUBLIC_CHAIN_RPC_URL` | Rayls Public Testnet RPC | `https://testnet-rpc.rayls.com` |
+| `DEPLOYER_PRIVATE_KEY` | Private key for transactions | Required |
+| `USER_PRIVATE_KEY` | Secondary private key | Required |
+| `OLLAMA_MODEL` | Ollama model to use | `deepseek-r1:14b` |
+| `DRY_RUN` | Simulate transactions without sending | `true` |
+| `MAX_BRIDGE_AMOUNT` | Max tokens per bridge transaction | `10000` |
+| `AGENT_LOOP_INTERVAL_MS` | Delay between cycles in ms | `30000` |
+| `KNOWN_TOKENS` | Comma-separated token addresses to monitor | - |
+
+---
+
+## Deploy a Token
+
+```bash
+# Compile the contract (requires Foundry)
+cd contracts && forge build && cd ..
+
+# Deploy to Privacy Node
+npx tsx src/deploy.ts
+```
+
+The script outputs the deployed token address. Use it with `KNOWN_TOKENS`:
+
+```bash
+KNOWN_TOKENS=0xYOUR_TOKEN_ADDRESS npx tsx src/index.ts
+```
 
 ---
 
 ## Guardrails
 
-The agent enforces safety rules at every step:
-
 | Rule | Default |
-|---|---|
+|------|---------|
 | Max bridge per transaction | 10,000 tokens |
-| Max bridge per hour | 50,000 tokens |
-| Dry-run before any execution | `true` |
-| Contract whitelist | Only deployed contracts |
-| Cooldown between actions | 5 seconds |
-| Timeout per phase | 30 seconds |
+| Dry-run before execution | Enabled |
+| Cooldown between actions | 10 seconds |
+| LLM timeout | 120 seconds |
 
----
-
-## Running the Agent
-
-### Prerequisites
-
-```bash
-npm install
-```
-
-### Environment
-
-Copy and fill in `.env`:
-
-```env
-PRIVACY_NODE_RPC_URL=https://privacy-node-5.rayls.com
-PRIVACY_NODE_CHAIN_ID=800005
-PUBLIC_CHAIN_RPC_URL=https://testnet-rpc.rayls.com
-PUBLIC_CHAIN_ID=7295799
-DEPLOYER_PRIVATE_KEY=<your-key>
-ANTHROPIC_API_KEY=<your-key>
-DRY_RUN=true
-MAX_BRIDGE_AMOUNT=10000
-AGENT_LOOP_INTERVAL_MS=30000
-```
-
-### Start the agent
-
-```bash
-npm run dev       # development (ts-node)
-npm start         # production (compiled)
-```
-
-### Deploy contracts
-
-```bash
-npm run deploy
-```
-
----
-
-## What the Jury Sees Live
-
-1. **Terminal** — Structured real-time logs: every agent decision with its full LLM reasoning
-2. **Block explorers** — Transactions visible on both Rayls explorers (Privacy Node + Public Testnet)
-3. **Autonomy** — The agent runs the full pipeline without human input
-4. **Guardrails in action** — Dry-run logs, threshold enforcement, rate limiting visible in output
-5. **AI reasoning** — Not just a script: the agent reasons, decides, and justifies every action in JSON
+Set `DRY_RUN=false` to execute real on-chain transactions.
 
 ---
 
@@ -160,25 +142,64 @@ npm run deploy
 
 ```
 src/
-  index.ts              # Entry point + graceful shutdown
+  index.ts              Entry point, env validation, chain connections
+  deploy.ts             Token deployment script
   agent/
-    loop.ts             # Main pipeline: DETECT→ATTEST→GOVERN→BRIDGE→LIST→MONITOR
-    llm.ts              # Anthropic SDK wrapper + OpenRouter fallback
-    tools.ts            # On-chain tool definitions
-    guardrails.ts       # Safety rules, rate limits, dry-run
+    loop.ts             Main DETECT->LIST->MONITOR cycle
+    llm.ts              Ollama client (OpenAI-compatible API)
+    tools.ts            On-chain read/write functions
+    guardrails.ts       Rate limits, dry-run, max amounts
+    sounds.ts           macOS audio feedback + voice narration
   chain/
-    privacy.ts          # viem client for Privacy Node
-    public.ts           # viem client for Public Chain
-    contracts.ts        # ABIs + contract addresses
+    privacy.ts          viem client for Privacy Node (chain 800005)
+    public.ts           viem client for Public Chain (chain 7295799)
+    contracts.ts        ABIs for HackathonToken, Attestation, Marketplace
   logger/
-    index.ts            # pino structured logger
+    index.ts            Colored terminal output + pino structured logs
   types/
-    index.ts            # Shared TypeScript types
-  deploy.ts             # Contract deployment script
+    index.ts            TypeScript types + zod env schema
 contracts/
-  src/HackathonToken.sol  # ERC20 token for demo
+  src/HackathonToken.sol  Minimal ERC20 with mint
+demo/
+  capture-logs.ts       Record agent output as JSON timeline
+  timeline-mock.json    Pre-built timeline for video rendering
+  REMOTION_PROMPT.md    Spec for generating the Remotion demo video
 ```
 
 ---
 
-Built at **Rayls Hackathon 2026** by the Dear Agent team.
+## Tech Stack
+
+| Component | Choice | Why |
+|-----------|--------|-----|
+| Runtime | Node.js + TypeScript | Type-safe, fast iteration |
+| LLM | Ollama (deepseek-r1:14b) | Local, zero cloud, full sovereignty |
+| Blockchain | viem | Modern, type-safe EVM client |
+| Contracts | Foundry (solc 0.8.20) | Battle-tested toolchain |
+| Logs | pino | Structured JSON output |
+| Config | dotenv + zod | Runtime env validation |
+
+---
+
+## Explorers
+
+- Privacy Node 5: https://blockscout-privacy-node-5.rayls.com
+- Public Testnet: https://testnet-explorer.rayls.com
+
+---
+
+## Demo Video
+
+To capture a run for the Remotion demo video:
+
+```bash
+KNOWN_TOKENS=0x... npx tsx demo/capture-logs.ts
+# Wait for one full cycle, then Ctrl+C
+# Output: demo/timeline.json
+```
+
+See `demo/REMOTION_PROMPT.md` for the full Remotion video generation spec.
+
+---
+
+Built at **Rayls Hackathon #2 -- Cannes 2026**
