@@ -8,8 +8,20 @@ import { setModel } from "./agent/llm.js";
 import { initGuardrails } from "./agent/guardrails.js";
 import { startAgentLoop, stopAgent } from "./agent/loop.js";
 
+const BANNER = `
+  ____  _____    _    ____
+ |  _ \\| ____|  / \\  |  _ \\
+ | | | |  _|   / _ \\ | |_) |
+ | |_| | |___ / ___ \\|  _ <
+ |____/|_____/_/   \\_\\_| \\_\\
+
+  Autonomous Institutional Treasury Agent
+  Detect . Attest . Govern . Bridge . List
+  ----------------------------------------
+`;
+
 async function main() {
-  phaseLog("INIT", "DEAR - Autonomous Institutional Treasury Agent");
+  console.log(BANNER);
   phaseLog("INIT", "Validating environment...");
 
   const env = envSchema.parse(process.env);
