@@ -2,7 +2,7 @@
 
 Detect . Attest . Govern . Bridge . List
 
-An autonomous AI agent that manages institutional treasury operations on the [Rayls](https://www.rayls.com/) network. It continuously scans a Privacy Node for tokenized assets, performs compliance analysis via a local LLM, makes governance decisions, bridges approved assets to the public chain, and lists them on a marketplace -- all without human intervention.
+An autonomous AI agent that manages institutional treasury operations on the [Rayls](https://www.rayls.com/) network. It continuously scans a Privacy Node for tokenized assets, performs compliance analysis via a local LLM, makes governance decisions, bridges approved assets, and lists them on a marketplace -- all without human intervention.
 
 ---
 
@@ -24,8 +24,9 @@ cp .env.example .env
 ollama pull qwen3:8b
 # or: ollama pull deepseek-r1:14b
 
-# Deploy a token on the Privacy Node
+# Deploy contracts on Privacy Node (token + attestation + marketplace)
 npm run deploy
+npm run deploy:public
 
 # Run the agent (use the token address from deploy output)
 KNOWN_TOKENS=0xd0141e899a65c95a556fe2b27e5982a6de7fdd7a npm start
@@ -47,13 +48,13 @@ DETECT --> ATTEST --> GOVERN --> BRIDGE --> LIST --> MONITOR --> (loop)
 ```
 
 1. **DETECT** -- Scans the Privacy Node for deployed ERC20 tokens with non-zero balance
-2. **ATTEST** -- LLM analyzes asset type, risk score, compliance status. Minimal on-chain attestation on the public chain (proof of existence, no private details revealed)
+2. **ATTEST** -- LLM analyzes asset type, risk score, compliance status. On-chain attestation recorded on Privacy Node (proof of existence, no private details revealed)
 3. **GOVERN** -- LLM acts as compliance committee: approves or rejects the asset for bridge with structured reasoning
-4. **BRIDGE** -- If approved, initiates Privacy Node to Public Chain bridge (dry-run first)
-5. **LIST** -- Lists the bridged asset on the Marketplace contract with a suggested price
+4. **BRIDGE** -- If approved, records bridge intent on Privacy Node (backend API with on-chain fallback)
+5. **LIST** -- Lists the asset on the Marketplace contract with AI-suggested pricing
 6. **MONITOR** -- Checks marketplace state, loops back to DETECT
 
-Each phase produces structured colored logs with audio feedback on macOS.
+Each phase produces structured colored logs with audio feedback and voice narration on macOS.
 
 ---
 
@@ -67,24 +68,24 @@ Each phase produces structured colored logs with audio feedback on macOS.
 |  |   Agent Loop      |    |   Guardrails Engine       |  |
 |  |  DETECT           |    |  - Max bridge amount      |  |
 |  |  ATTEST           |    |  - Rate limiting          |  |
-|  |  GOVERN           |    |  - Dry-run mode           |  |
-|  |  BRIDGE           |    |  - Cooldown enforcement   |  |
-|  |  LIST             |    +---------------------------+  |
-|  |  MONITOR          |                                   |
-|  +-------------------+    +---------------------------+  |
-|                           |   Structured Logger       |  |
-|  +-------------------+    |  - Colored terminal output|  |
-|  |   LLM Provider    |    |  - Full reasoning traces  |  |
-|  |  Ollama (local)   |    |  - Audio + voice feedback |  |
-|  |  qwen3 / deepseek |    +---------------------------+  |
+|  |  GOVERN           |    |  - Cooldown enforcement   |  |
+|  |  BRIDGE           |    +---------------------------+  |
+|  |  LIST             |                                   |
+|  |  MONITOR          |    +---------------------------+  |
+|  +-------------------+    |   Structured Logger       |  |
+|                           |  - Colored terminal output|  |
+|  +-------------------+    |  - Full reasoning traces  |  |
+|  |   LLM Provider    |    |  - Audio + voice feedback |  |
+|  |  Ollama (local)   |    +---------------------------+  |
+|  |  qwen3 / deepseek |                                   |
 |  +-------------------+                                   |
 |                                                          |
 |  +----------------------------------------------------+  |
-|  |                   TOOLS (viem)                      |  |
-|  |  Privacy Node 5         Public Testnet              |  |
-|  |  - detectAssets()       - attestOnChain()           |  |
-|  |  - balanceOf()          - listOnMarketplace()       |  |
-|  |  - bridgeAsset()        - getMarketplaceListings()  |  |
+|  |              SMART CONTRACTS (Privacy Node)         |  |
+|  |  HackathonToken    Attestation    Marketplace       |  |
+|  |  - ERC20 + mint    - attest()     - list()          |  |
+|  |  - balanceOf()     - getAttest()  - buy()           |  |
+|  |  - transfer()      - events       - getListing()    |  |
 |  +----------------------------------------------------+  |
 +----------------------------------------------------------+
          |                              |
@@ -92,6 +93,26 @@ Each phase produces structured colored logs with audio feedback on macOS.
    Privacy Node 5              Rayls Public Testnet
    Chain ID: 800005            Chain ID: 7295799
 ```
+
+---
+
+## Deployed Contracts (Privacy Node 5)
+
+| Contract | Address | Explorer |
+|----------|---------|----------|
+| HackathonToken | `0xd0141e899a65c95a556fe2b27e5982a6de7fdd7a` | [View](https://blockscout-privacy-node-5.rayls.com/address/0xd0141e899a65c95a556fe2b27e5982a6de7fdd7a) |
+| Attestation | `0x07882ae1ecb7429a84f1d53048d35c4bb2056877` | [View](https://blockscout-privacy-node-5.rayls.com/address/0x07882ae1ecb7429a84f1d53048d35c4bb2056877) |
+| Marketplace | `0x22753e4264fddc6181dc7cce468904a80a363e44` | [View](https://blockscout-privacy-node-5.rayls.com/address/0x22753e4264fddc6181dc7cce468904a80a363e44) |
+
+### Live Transactions (from agent run)
+
+| Phase | Tx Hash | Explorer |
+|-------|---------|----------|
+| Token Deploy | `0xab65e485...` | [View](https://blockscout-privacy-node-5.rayls.com/tx/0xab65e4858c8e0d4e56ecd870789f3d1a1aa609f4458c027f72691a52716c1022) |
+| Attestation Deploy | `0x8580876c...` | [View](https://blockscout-privacy-node-5.rayls.com/tx/0x8580876c2e878e447830d536c050cba33a41911cfe6929f8bb70f2c2f76b61af) |
+| Marketplace Deploy | `0x5a077fb6...` | [View](https://blockscout-privacy-node-5.rayls.com/tx/0x5a077fb62c0e4868b0d0570d63c74dd01fed906f0c6acf5821ddcc935a1b0a0d) |
+| On-chain Attestation | `0xda884941...` | [View](https://blockscout-privacy-node-5.rayls.com/tx/0xda884941be2f14311d5b95bc8afeff28de3a754c8314edd5e68583a7dd3fa9b5) |
+| Bridge Intent | `0x54b81c5a...` | [View](https://blockscout-privacy-node-5.rayls.com/tx/0x54b81c5ad2a313eac320c13a02fb88a3ff16b8330ca442a72a27107f2d062318) |
 
 ---
 
@@ -103,28 +124,27 @@ Each phase produces structured colored logs with audio feedback on macOS.
 | `PUBLIC_CHAIN_RPC_URL` | Rayls Public Testnet RPC | `https://testnet-rpc.rayls.com` |
 | `DEPLOYER_PRIVATE_KEY` | Private key for transactions | Required |
 | `USER_PRIVATE_KEY` | Secondary private key | Required |
-| `OLLAMA_MODEL` | Ollama model to use | `deepseek-r1:14b` or `qwen3:8b` |
-| `DRY_RUN` | Simulate transactions without sending | `true` |
+| `OLLAMA_MODEL` | Ollama model to use | `qwen3:8b` |
+| `DRY_RUN` | Simulate transactions without sending | `false` |
 | `MAX_BRIDGE_AMOUNT` | Max tokens per bridge transaction | `10000` |
 | `AGENT_LOOP_INTERVAL_MS` | Delay between cycles in ms | `30000` |
 | `KNOWN_TOKENS` | Comma-separated token addresses to monitor | - |
+| `ATTESTATION_ADDRESS` | Attestation contract address | - |
+| `MARKETPLACE_ADDRESS` | Marketplace contract address | - |
 
 ---
 
-## Deploy a Token
+## Deploy Contracts
 
 ```bash
-# Compile the contract (requires Foundry)
+# Compile (requires Foundry, optional if artifacts exist)
 cd contracts && forge build && cd ..
 
-# Deploy to Privacy Node
+# Deploy HackathonToken on Privacy Node
 npm run deploy
-```
 
-The script outputs the deployed token address. Use it with `KNOWN_TOKENS`:
-
-```bash
-KNOWN_TOKENS=0xYOUR_TOKEN_ADDRESS npx tsx src/index.ts
+# Deploy Attestation + Marketplace on Privacy Node
+npm run deploy:public
 ```
 
 ---
@@ -134,11 +154,10 @@ KNOWN_TOKENS=0xYOUR_TOKEN_ADDRESS npx tsx src/index.ts
 | Rule | Default |
 |------|---------|
 | Max bridge per transaction | 10,000 tokens |
-| Dry-run before execution | Enabled |
 | Cooldown between actions | 10 seconds |
 | LLM timeout | 120 seconds |
 
-Set `DRY_RUN=false` to execute real on-chain transactions.
+Set `DRY_RUN=true` to simulate transactions without sending.
 
 ---
 
@@ -147,27 +166,27 @@ Set `DRY_RUN=false` to execute real on-chain transactions.
 ```
 src/
   index.ts              Entry point, env validation, chain connections
-  deploy.ts             Token deployment script
+  deploy.ts             Token deployment script (Privacy Node)
+  deploy-public.ts      Attestation + Marketplace deployment (Privacy Node)
   agent/
     loop.ts             Main DETECT->LIST->MONITOR cycle
-    llm.ts              Ollama client (native API, JSON mode)
+    llm.ts              Ollama client (native API, JSON mode, think:false)
     tools.ts            On-chain read/write functions
-    guardrails.ts       Rate limits, dry-run, max amounts
+    guardrails.ts       Rate limits, max amounts, cooldown
     sounds.ts           macOS audio feedback + voice narration
   chain/
     privacy.ts          viem client for Privacy Node (chain 800005)
     public.ts           viem client for Public Chain (chain 7295799)
-    contracts.ts        ABIs for HackathonToken, Attestation, Marketplace
+    contracts.ts        ABIs + addresses (loaded from env)
   logger/
     index.ts            Colored terminal output + pino structured logs
   types/
     index.ts            TypeScript types + zod env schema
 contracts/
-  src/HackathonToken.sol  Minimal ERC20 with mint
-demo/
-  capture-logs.ts       Record agent output as JSON timeline
-  timeline-mock.json    Pre-built timeline for video rendering
-  REMOTION_PROMPT.md    Spec for generating the Remotion demo video
+  src/
+    HackathonToken.sol  ERC20 with mint
+    Attestation.sol     On-chain attestation registry
+    Marketplace.sol     Asset listing and trading
 ```
 
 ---
@@ -189,20 +208,6 @@ demo/
 
 - Privacy Node 5: https://blockscout-privacy-node-5.rayls.com
 - Public Testnet: https://testnet-explorer.rayls.com
-
----
-
-## Demo Video
-
-To capture a run for the Remotion demo video:
-
-```bash
-KNOWN_TOKENS=0x... npx tsx demo/capture-logs.ts
-# Wait for one full cycle, then Ctrl+C
-# Output: demo/timeline.json
-```
-
-See `demo/REMOTION_PROMPT.md` for the full Remotion video generation spec.
 
 ---
 

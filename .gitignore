@@ -2,3 +2,5 @@ node_modules/
 dist/
 .env
 contracts/cache/
+demo/
+.DS_Store
