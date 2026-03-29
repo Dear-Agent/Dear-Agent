@@ -1,6 +1,5 @@
-# Dear Agent — Autonomous Institutional Treasury Agent on Rayls
-
-> **"Humans watch; the agent operates."**
+# Dear Agent
+### Autonomous Institutional Treasury Agent on [Rayls](https://www.rayls.com/)
 
 ---
 
