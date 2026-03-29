@@ -7,13 +7,21 @@
     "start": "tsx src/index.ts",
     "dev": "tsx watch src/index.ts",
     "build": "tsc",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "deploy": "tsx src/deploy-simple.ts",
+    "setup": "tsx src/setup.ts"
   },
-  "keywords": ["rayls", "treasury", "agent", "institutional"],
+  "keywords": [
+    "rayls",
+    "treasury",
+    "agent",
+    "institutional"
+  ],
   "author": "",
   "license": "ISC",
   "description": "DEAR - Autonomous Institutional Treasury Agent",
   "dependencies": {
+    "@rayls/contracts": "^2.4.1-nightly.7",
     "dotenv": "^17.3.1",
     "pino": "^10.3.1",
     "viem": "^2.47.6",
@@ -21,6 +29,7 @@
   },
   "devDependencies": {
     "@types/node": "^25.5.0",
+    "solc": "^0.8.34",
     "tsx": "^4.21.0",
     "typescript": "^6.0.2"
   }
