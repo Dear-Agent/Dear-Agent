@@ -1,7 +1,10 @@
 import { exec } from "child_process";
+import { platform } from "os";
 
-const SOUNDS_DIR = "/System/Library/Sounds";
+const isMac = platform() === "darwin";
 
+// macOS system sounds (available on any Mac, no need to bundle)
+const MAC_SOUNDS_DIR = "/System/Library/Sounds";
 const PHASE_SOUNDS: Record<string, string> = {
   INIT: "Submarine.aiff",
   DETECT: "Pop.aiff",
@@ -18,10 +21,20 @@ const PHASE_SOUNDS: Record<string, string> = {
 export function playSound(phase: string) {
   const file = PHASE_SOUNDS[phase];
   if (!file) return;
-  exec(`afplay "${SOUNDS_DIR}/${file}" &`, () => {});
+
+  if (isMac) {
+    exec(`afplay "${MAC_SOUNDS_DIR}/${file}" &`, () => {});
+  } else {
+    // Terminal bell fallback for Linux/Windows
+    process.stdout.write("\x07");
+  }
 }
 
 export function speak(text: string) {
-  const sanitized = text.replace(/"/g, '\\"').slice(0, 200);
-  exec(`say -r 180 "${sanitized}" &`, () => {});
+  const sanitized = text.replace(/["`$]/g, "").slice(0, 200);
+
+  if (isMac) {
+    exec(`say -r 180 '${sanitized.replace(/'/g, "'\\''")}' &`, () => {});
+  }
+  // No TTS fallback on other platforms -- sounds still play via bell
 }
