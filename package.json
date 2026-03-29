@@ -14,7 +14,7 @@
   },
   "keywords": ["rayls", "treasury", "agent", "institutional"],
   "author": "",
-  "license": "ISC",
+  "license": "MIT",
   "description": "DEAR - Autonomous Institutional Treasury Agent",
   "dependencies": {
     "dotenv": "^17.3.1",
