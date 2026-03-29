@@ -40,8 +40,14 @@ async function chat(userPrompt: string): Promise<string> {
 
     const data = await res.json();
     const content = data.choices?.[0]?.message?.content ?? "";
-    // Strip <think>...</think> tags from deepseek-r1 responses
-    return content.replace(/<think>[\s\S]*?<\/think>/g, "").trim();
+    // Strip <think>...</think> tags from deepseek-r1 / qwen3 responses
+    const stripped = content.replace(/<think>[\s\S]*?<\/think>/g, "").trim();
+    // qwen3 sometimes puts the JSON inside <think> and outputs nothing after — fall back
+    if (!stripped) {
+      const thinkMatch = content.match(/<think>([\s\S]*?)<\/think>/);
+      if (thinkMatch) return thinkMatch[1].trim();
+    }
+    return stripped;
   } finally {
     clearTimeout(timeout);
   }
