@@ -177,12 +177,11 @@ export const MARKETPLACE_ABI = [
   },
 ] as const;
 
-// Contract addresses - will be set after deployment or from env
+// Contract addresses - loaded from env or set at runtime
 export const ADDRESSES = {
   deploymentProxyRegistry:
-    "0x75Da1758161588FD2ccbFd23AB87f373b0f73c8F" as `0x${string}`,
-  // These will be populated after deployment
-  hackathonToken: "" as `0x${string}`,
-  attestation: "" as `0x${string}`,
-  marketplace: "" as `0x${string}`,
+    (process.env.DEPLOYMENT_PROXY_REGISTRY ?? "0x75Da1758161588FD2ccbFd23AB87f373b0f73c8F") as `0x${string}`,
+  hackathonToken: (process.env.TOKEN_ADDRESS ?? "") as `0x${string}`,
+  attestation: (process.env.ATTESTATION_ADDRESS ?? "") as `0x${string}`,
+  marketplace: (process.env.MARKETPLACE_ADDRESS ?? "") as `0x${string}`,
 };

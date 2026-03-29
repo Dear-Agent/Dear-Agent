@@ -12,9 +12,11 @@ export const envSchema = z.object({
   DEPLOYER_PRIVATE_KEY: z.string().startsWith("0x"),
   USER_PRIVATE_KEY: z.string().startsWith("0x"),
   OLLAMA_MODEL: z.string().default("deepseek-r1:14b"),
-  DRY_RUN: z.coerce.boolean().default(true),
+  DRY_RUN: z.string().default("true").transform((v) => v === "true"),
   MAX_BRIDGE_AMOUNT: z.coerce.number().default(10000),
   AGENT_LOOP_INTERVAL_MS: z.coerce.number().default(30000),
+  ATTESTATION_ADDRESS: z.string().startsWith("0x").optional(),
+  MARKETPLACE_ADDRESS: z.string().startsWith("0x").optional(),
 });
 
 export type Env = z.infer<typeof envSchema>;
