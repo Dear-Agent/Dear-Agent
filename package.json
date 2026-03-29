@@ -9,7 +9,8 @@
     "build": "tsc",
     "typecheck": "tsc --noEmit",
     "deploy": "tsx src/deploy.ts",
-    "deploy:public": "tsx src/deploy-public.ts"
+    "deploy:public": "tsx src/deploy-public.ts",
+    "capture": "tsx demo/capture-logs.ts"
   },
   "keywords": ["rayls", "treasury", "agent", "institutional"],
   "author": "",

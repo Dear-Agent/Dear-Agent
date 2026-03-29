@@ -16,7 +16,7 @@ Copy `demo/timeline-mock.json` (or `demo/timeline.json` from a real capture) int
 
 ### Video Specs
 
-- Duration: 45 seconds (1350 frames at 30fps)
+- Duration: 50 seconds (1500 frames at 30fps)
 - Resolution: 1920x1080
 - FPS: 30
 
@@ -44,7 +44,7 @@ Use a monospace font: "JetBrains Mono", "Fira Code", or "IBM Plex Mono". Load vi
 The video has 3 layers:
 
 #### Layer 1: Background
-The Romantic oil painting background image (generated separately). Full bleed, slightly darkened (opacity 0.85 black overlay) so the terminal text is readable. Subtle slow zoom-in (1.0 to 1.03 scale over 45s) for a cinematic feel.
+The Romantic oil painting background image (generated separately). Full bleed, slightly darkened (opacity 0.85 black overlay) so the terminal text is readable. Subtle slow zoom-in (1.0 to 1.03 scale over 50s) for a cinematic feel.
 
 #### Layer 2: ASCII Banner (frames 0-150, ~5 seconds)
 Centered on screen, fade in letter by letter:
@@ -98,7 +98,7 @@ Message colors by type:
 - "success" -> gold, slightly brighter
 - "error" -> red
 - "decision" -> gold
-- "tx" -> green
+- "tx" -> green (transaction hashes should render with a typewriter effect)
 - "status" -> cream
 
 #### Animations
@@ -115,29 +115,41 @@ Message colors by type:
 
 6. **LLM thinking**: When phase is "LLM", show a subtle pulsing dots animation "..." in amber to indicate the AI is processing.
 
+7. **Transaction hash glow**: When a line contains a tx hash (0x...), the hash renders in green with a subtle pulse glow, emphasizing real on-chain activity.
+
 #### Special Moments
 
-- **APPROVED** (t=33000): Brief gold flash overlay (opacity 0 to 0.08 to 0 over 15 frames). The word "APPROVED" renders in bold gold with a subtle glow.
+- **LIVE MODE** (t=4200): The text "LIVE MODE - real on-chain transactions" renders in gold with a brief flash. This is the key differentiator -- the agent is not simulating, it's executing.
 
-- **Asset detected** (t=6200): The token address fades in with a typewriter effect, character by character.
+- **On-chain attestation** (t=21000): The attestation tx hash appears with a typewriter effect. Brief green glow to emphasize this is a real transaction on the Privacy Node.
+
+- **APPROVED** (t=33000): Brief gold flash overlay (opacity 0 to 0.08 to 0 over 15 frames). The word "APPROVED" renders in bold gold with a subtle glow. The reasoning data appears below with the risk assessment.
+
+- **Bridge + List** (t=34000-37000): Rapid succession of real transactions. Each tx hash types out character by character. The guardrails cap is shown, demonstrating the safety system.
+
+- **Active listings: 1/1** (t=38000): The marketplace now has a live listing. Green highlight to show the full pipeline completed.
 
 - **Cycle complete** (t=40000): All terminal text briefly brightens, then dims to normal. Satisfying visual punctuation.
 
-#### Outro (last 3 seconds)
+#### Outro (last 4 seconds)
 
-Terminal fades to 30% opacity. Centered text appears:
+Terminal fades to 30% opacity. Centered text appears in sequence:
 
-"Humans watch. The agent operates."
+Line 1: "Humans watch. The agent operates."
+In gold (#C6A84B), italic, with a slow fade-in.
 
-In gold (#C6A84B), italic, with a slow fade-in. Below in small dim text:
-"Built for Rayls Hackathon #2 - Cannes 2026"
+Line 2: "Every transaction verifiable on-chain."
+In amber (#B8863A), smaller, fade-in 1s after line 1.
+
+Line 3: "Built for Rayls Hackathon #2 -- Cannes 2026"
+In dim umber, smallest text, fade-in 1s after line 2.
 
 ### Timeline JSON Format
 
 ```ts
 interface TimelineEntry {
   t: number;       // milliseconds from start
-  phase: string;   // INIT, DETECT, ATTEST, GOVERN, BRIDGE, LIST, MONITOR, LLM, AGENT, BANNER
+  phase: string;   // INIT, DETECT, ATTEST, GOVERN, BRIDGE, LIST, MONITOR, LLM, AGENT, BANNER, GUARDRAILS
   message: string;
   data?: Record<string, unknown>;
   type: "status" | "success" | "error" | "decision" | "tx" | "banner";
@@ -149,6 +161,19 @@ interface Timeline {
   timeline: TimelineEntry[];
 }
 ```
+
+### Key narrative beats
+
+The video tells a story in 50 seconds:
+
+1. **Cold open** (0-5s): The DEAR banner appears. Institutional, serious, gold on black.
+2. **Initialization** (5-8s): The agent boots up, connects to two chains, loads contracts. Speed conveys competence.
+3. **Detection** (8-10s): The agent finds an asset. "Found HKT: 1,000,000 tokens" is the inciting event.
+4. **AI Analysis** (10-22s): The LLM processes. Dots pulse. Then: analysis complete, risk score, compliance status. The attestation is written ON-CHAIN -- real tx hash visible.
+5. **Governance** (22-34s): The AI committee deliberates. Then: APPROVED. Gold flash. The reasoning scrolls in, showing the AI's logic.
+6. **Execution** (34-38s): Rapid-fire: bridge, guardrails cap, marketplace listing. Three real transactions in 4 seconds. The agent operates.
+7. **Completion** (38-42s): "Active listings: 1/1". Full cycle complete. The invisible asset is now tradeable.
+8. **Outro** (42-50s): "Humans watch. The agent operates."
 
 ### Remotion Component Structure
 
@@ -162,7 +187,8 @@ src/
     Terminal.tsx         # Terminal window container
     LogLine.tsx          # Single animated log line
     Cursor.tsx           # Blinking cursor
-    Outro.tsx            # Closing text
+    TxHash.tsx           # Transaction hash with typewriter + glow
+    Outro.tsx            # Closing text sequence
   lib/
     colors.ts           # Palette constants
     useTimeline.ts      # Hook to read and filter timeline entries by frame
@@ -181,3 +207,10 @@ src/
 ```bash
 npx remotion render Timeline out/dear-demo.mp4
 ```
+
+### Deployed contracts (for explorer verification during demo)
+
+- Privacy Node 5 Explorer: https://blockscout-privacy-node-5.rayls.com
+- HackathonToken: `0xd0141e899a65c95a556fe2b27e5982a6de7fdd7a`
+- Attestation: `0x07882ae1ecb7429a84f1d53048d35c4bb2056877`
+- Marketplace: `0x22753e4264fddc6181dc7cce468904a80a363e44`
