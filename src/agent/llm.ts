@@ -6,7 +6,7 @@ const OLLAMA_BASE = "http://localhost:11434/v1/chat/completions";
 const SYSTEM_PROMPT = `You are DEAR, an autonomous institutional treasury compliance agent.
 You analyze tokenized assets for risk, compliance, and market viability.
 You make governance decisions: APPROVE or REJECT assets for cross-chain bridging and marketplace listing.
-IMPORTANT: Do NOT think or reason. Output ONLY the raw JSON object. No explanation, no markdown, no wrapping.`;
+IMPORTANT: Do NOT think or reason. Output ONLY the raw JSON object. No explanation, no markdown, no wrapping. /no_think`;
 
 let model = "deepseek-r1:14b";
 
@@ -42,12 +42,10 @@ async function chat(userPrompt: string): Promise<string> {
     const content = data.choices?.[0]?.message?.content ?? "";
     // Strip <think>...</think> tags from deepseek-r1 / qwen3 responses
     const stripped = content.replace(/<think>[\s\S]*?<\/think>/g, "").trim();
-    // qwen3 sometimes puts the JSON inside <think> and outputs nothing after — fall back
-    if (!stripped) {
-      const thinkMatch = content.match(/<think>([\s\S]*?)<\/think>/);
-      if (thinkMatch) return thinkMatch[1].trim();
-    }
-    return stripped;
+    if (stripped) return stripped;
+    // If nothing left after stripping, extract JSON from full response (including think tags)
+    const jsonMatch = content.match(/\{[\s\S]*\}/);
+    return jsonMatch ? jsonMatch[0] : "";
   } finally {
     clearTimeout(timeout);
   }

@@ -7,7 +7,8 @@
     "start": "tsx src/index.ts",
     "dev": "tsx watch src/index.ts",
     "build": "tsc",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "deploy": "tsx src/deploy.ts"
   },
   "keywords": ["rayls", "treasury", "agent", "institutional"],
   "author": "",
