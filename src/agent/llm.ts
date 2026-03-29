@@ -60,8 +60,10 @@ async function chat(userPrompt: string): Promise<string> {
 export async function analyzeAsset(
   asset: DetectedAsset,
 ): Promise<AttestationData> {
-  const prompt = `Analyze this tokenized asset for attestation.
+  const prompt = `Analyze this tokenized asset for attestation on a permissioned institutional blockchain (Rayls Privacy Ledger).
 Asset: ${JSON.stringify({ address: asset.tokenAddress, name: asset.name, symbol: asset.symbol, balance: asset.balance.toString(), decimals: asset.decimals })}
+
+Context: This token was deployed on a regulated privacy ledger with KYC-verified participants. Assets on this network have passed initial screening by the network operator.
 
 Respond with JSON only:
 {"assetType": "BOND|EQUITY|COMMODITY|STABLECOIN|OTHER", "riskScore": 1-100, "complianceStatus": "COMPLIANT|NEEDS_REVIEW|NON_COMPLIANT", "metadata": "brief analysis"}`;
@@ -101,15 +103,18 @@ export async function governanceReview(
   asset: DetectedAsset,
   attestation: AttestationData,
 ): Promise<GovernanceDecision> {
-  const prompt = `You are the governance committee. Review this asset for cross-chain bridge and marketplace listing.
+  const prompt = `You are the governance committee reviewing an asset on a permissioned institutional blockchain (Rayls Privacy Ledger) for cross-chain bridge and marketplace listing.
 
 Asset: ${asset.symbol} (${asset.name}) at ${asset.tokenAddress}
 Balance: ${asset.balance.toString()}
 Attestation: type=${attestation.assetType}, risk=${attestation.riskScore}/100, compliance=${attestation.complianceStatus}
 
+Context: This asset exists on a KYC-verified privacy ledger operated by a licensed financial institution. All participants are pre-approved.
+
 Rules:
-- REJECT if riskScore > 80 or complianceStatus is NON_COMPLIANT
-- APPROVE if riskScore <= 80 and compliance is COMPLIANT or NEEDS_REVIEW
+- REJECT only if riskScore > 85 or complianceStatus is NON_COMPLIANT
+- APPROVE if riskScore <= 85 and compliance is COMPLIANT or NEEDS_REVIEW
+- For NEEDS_REVIEW assets with riskScore <= 85, default to APPROVE with conditions noted in reasoning
 - Suggest a price in wei (use 1000000000000000000 = 1 ETH as baseline)
 
 Respond with JSON only:

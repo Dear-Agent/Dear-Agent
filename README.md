@@ -20,11 +20,15 @@ npm install
 cp .env.example .env
 # Edit .env: fill in DEPLOYER_PRIVATE_KEY and USER_PRIVATE_KEY
 
-# Pull the LLM model (local, zero cloud dependency)
-ollama pull deepseek-r1:14b
+# Pull an LLM model (local, zero cloud dependency)
+ollama pull qwen3:8b
+# or: ollama pull deepseek-r1:14b
 
-# Run the agent
-KNOWN_TOKENS=0x34b40ba116d5dec75548a9e9a8f15411461e8c70 npx tsx src/index.ts
+# Deploy a token on the Privacy Node
+npm run deploy
+
+# Run the agent (use the token address from deploy output)
+KNOWN_TOKENS=0xd0141e899a65c95a556fe2b27e5982a6de7fdd7a npm start
 ```
 
 ### Prerequisites
@@ -72,7 +76,7 @@ Each phase produces structured colored logs with audio feedback on macOS.
 |  +-------------------+    |  - Colored terminal output|  |
 |  |   LLM Provider    |    |  - Full reasoning traces  |  |
 |  |  Ollama (local)   |    |  - Audio + voice feedback |  |
-|  |  deepseek-r1:14b  |    +---------------------------+  |
+|  |  qwen3 / deepseek |    +---------------------------+  |
 |  +-------------------+                                   |
 |                                                          |
 |  +----------------------------------------------------+  |
@@ -99,7 +103,7 @@ Each phase produces structured colored logs with audio feedback on macOS.
 | `PUBLIC_CHAIN_RPC_URL` | Rayls Public Testnet RPC | `https://testnet-rpc.rayls.com` |
 | `DEPLOYER_PRIVATE_KEY` | Private key for transactions | Required |
 | `USER_PRIVATE_KEY` | Secondary private key | Required |
-| `OLLAMA_MODEL` | Ollama model to use | `deepseek-r1:14b` |
+| `OLLAMA_MODEL` | Ollama model to use | `deepseek-r1:14b` or `qwen3:8b` |
 | `DRY_RUN` | Simulate transactions without sending | `true` |
 | `MAX_BRIDGE_AMOUNT` | Max tokens per bridge transaction | `10000` |
 | `AGENT_LOOP_INTERVAL_MS` | Delay between cycles in ms | `30000` |
@@ -114,7 +118,7 @@ Each phase produces structured colored logs with audio feedback on macOS.
 cd contracts && forge build && cd ..
 
 # Deploy to Privacy Node
-npx tsx src/deploy.ts
+npm run deploy
 ```
 
 The script outputs the deployed token address. Use it with `KNOWN_TOKENS`:
@@ -146,7 +150,7 @@ src/
   deploy.ts             Token deployment script
   agent/
     loop.ts             Main DETECT->LIST->MONITOR cycle
-    llm.ts              Ollama client (OpenAI-compatible API)
+    llm.ts              Ollama client (native API, JSON mode)
     tools.ts            On-chain read/write functions
     guardrails.ts       Rate limits, dry-run, max amounts
     sounds.ts           macOS audio feedback + voice narration
@@ -173,7 +177,7 @@ demo/
 | Component | Choice | Why |
 |-----------|--------|-----|
 | Runtime | Node.js + TypeScript | Type-safe, fast iteration |
-| LLM | Ollama (deepseek-r1:14b) | Local, zero cloud, full sovereignty |
+| LLM | Ollama (qwen3:8b / deepseek-r1:14b) | Local, zero cloud, full sovereignty |
 | Blockchain | viem | Modern, type-safe EVM client |
 | Contracts | Foundry (solc 0.8.20) | Battle-tested toolchain |
 | Logs | pino | Structured JSON output |
